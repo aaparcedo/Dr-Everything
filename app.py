@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from audio import record
 
 st.title("Dr. Everything at ya service...")
 
@@ -15,3 +16,5 @@ def submit():
 st.text_input('Enter text...', key='widget', on_change=submit)
 
 st.write(f'Last submission: {st.session_state.something}')
+
+st.button('record audio', on_click=record)
