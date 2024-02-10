@@ -1,5 +1,5 @@
-setuptools
-wheel
+setuptools==69.0.3
+wheel==0.42.0 
 streamlit==1.31.0
 replicate==0.23.1
 pyaudio==0.2.14
