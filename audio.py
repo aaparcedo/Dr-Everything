@@ -40,3 +40,5 @@ def record():
         wf.setsampwidth(audio.get_sample_size(FORMAT))
         wf.setframerate(RATE)
         wf.writeframes(b''.join(frames))
+    
+    return wf
