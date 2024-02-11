@@ -22,7 +22,7 @@ st.markdown(f"""
     <style>
     @keyframes typing {{
         from {{ width: 0; }}
-        to {{ width: 85%; }}
+        to {{ width: 95%; }}
     }}
 
     @keyframes blink-caret {{
