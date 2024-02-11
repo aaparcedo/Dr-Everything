@@ -3,6 +3,8 @@ import pandas as pd
 from audio import record
 import replicate
 import os
+import time
+import threading
 
 
 def submit():
@@ -12,7 +14,36 @@ def submit():
 if 'something' not in st.session_state:
     st.session_state.something = ''
 
-st.title("Dr. Everything at ya service...")
+#st.title("Dr. Everything")
+
+st.markdown(f"""
+    <style>
+    @keyframes typing {{
+        from {{ width: 0; }}
+        to {{ width: 85%; }}
+    }}
+
+    @keyframes blink-caret {{
+        0%, 100% {{ border-color: transparent; }}
+        50% {{ border-color: white; }}
+    }}
+
+    .title {{
+        font-size: 2.5em;
+        font-weight: 600;
+        color: #ffffff;
+        overflow: hidden;
+        white-space: nowrap;
+        border-right: .15em solid white;
+        font-family: monospace;
+        animation:
+            typing 3.5s steps(28, end) forwards,
+            blink-caret .75s step-end infinite;
+        animation-delay: 0s, 3.5s;
+    }}
+    </style>
+    <div class="title center">Hey there I am Persona Med!</div>
+""", unsafe_allow_html=True)
 
 st.markdown('## Whats the deal?')
 
