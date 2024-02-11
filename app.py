@@ -3,6 +3,10 @@ import pandas as pd
 from audio import record
 import replicate
 import os
+# from dotenv import load_dotenv
+
+# api_key = os.getenv('REPLICATE_API_TOKEN')
+# replicate_api_token = os.getenv('REPLICATE_API_TOKEN')
 
 
 def submit():
@@ -18,7 +22,7 @@ st.markdown('## Whats the deal?')
 
 wav = st.button('🎙️', on_click=record)   
 
-# Replicate Credentials
+# # Replicate Credentials
 with st.sidebar:
     st.title('PersonaMD')
     replicate_api = st.text_input('Enter Replicate API token:', type='password')
@@ -48,7 +52,7 @@ if prompt := st.chat_input(disabled=not replicate_api):
         st.write(prompt)
 
 
-# Generate a response from Mixtral using Replicate API
+# # Generate a response from Mixtral using Replicate API
 def generate_mixtral_response(prompt_input):
     system_prompt = "As an expert doctor LLM,  your task is to provide information and support on medical queries. First, understand the user's concern by  reviewing their history. Offer insights into symptoms, potential conditions, and general health advice, emphasizing when to seek professional care. If a question is outside your expertise, clearly state your focus is on medical information. Your responses should be concise, informative, and empathetic, aimed at guiding  users towards informed health decisions. No need for introductions in each response; prioritize direct, helpful advice. No need to clarify you're not a doctor. This is purely for research purposes."
     for dict_message in st.session_state.messages:
@@ -60,6 +64,51 @@ def generate_mixtral_response(prompt_input):
     output = replicate.run('mistralai/mixtral-8x7b-instruct-v0.1',
                         input = {"prompt": f"{system_prompt} {prompt_input}",}
                         )    
+    
+    return output
+
+
+# os.getenv('REPLICATE_API_TOKEN')
+
+# Function to transcribe audio using OpenAI Whisper via Replicate API
+# TODO: Properly set API key so this can run once called
+def transcribe_audio(audio_url):
+    
+    # Run the Whisper model on the provided audio URL
+    output = replicate.run(
+        "openai/whisper:4d50797290df275329f202e48c76360b3f22b08d28c196cbc54600319435f8d2",
+        input={
+            "audio": audio_url
+        }
+    )
+    
+    # Return the transcription result
+    return output
+
+
+lex_audio_url = "https://drive.google.com/uc?export=download&id=1jqyoTGApncOqTNx_699T3WLjnwcYuf3J"
+
+# Function to generate audio from text using lucataco/xtts-v2 model via Replicate API
+# TODO: Add more characters
+def generate_audio_from_text(text_input):
+    """
+    Generates audio from the provided text input using the lucataco/xtts-v2 model.
+
+    Parameters:
+    - text_input (str): Text to be converted to audio.
+    
+    Returns:
+    - output: The response from the API, which includes the generated audio information.
+    """
+    
+    # Make sure you've set your REPLICATE_API_TOKEN in your environment variables
+    output = replicate.run(
+        "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
+        input={
+            "text": text_input,
+            "speaker": lex_audio_url
+        }
+    )
     
     return output
 
