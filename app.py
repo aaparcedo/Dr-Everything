@@ -45,14 +45,15 @@ st.markdown(f"""
         animation-delay: 0s, 3.5s;
     }}
     </style>
-    <div class="title center">Hey there I am Persona Med!</div>
+    <div class="title center">Hey there I am Persona MD!</div>
 """, unsafe_allow_html=True)
 
-st.markdown('## Whats the deal?')
+st.markdown('## What can I help you with?')
 
 wav = st.button('🎙️', on_click=record)   
 
 # # Replicate Credentials
+model = "Random"
 with st.sidebar:
     st.title('PersonaMD')
     replicate_api = st.text_input('Enter Replicate API token:', type='password')
@@ -61,6 +62,10 @@ with st.sidebar:
     else:
         st.success('Proceed to entering your prompt message!', icon='👉')
     os.environ['REPLICATE_API_TOKEN'] = replicate_api
+
+    st.subheader('Models')
+    model = st.sidebar.selectbox('Choose a voice model', ['Peter Giffen', 'Lex Fridman', 'Joe Rogan', 'Wizard', 'Random'], key='selected_model')
+    
     
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
@@ -106,13 +111,24 @@ def generate_audio_from_text(text_input):
     Returns:
     - output: The response from the API, which includes the generated audio information.
     """
-    rand_url = rogan_audio_url
-    ranNum = random.randint(1, 4)
-    if(ranNum == 1):
-        rand_url = lex_audio_url
-    elif(ranNum == 2):
+    rand_url = None
+    if model == 'Random':
+        ranNum = random.randint(1, 4)
+        if(ranNum == 1):
+            rand_url = lex_audio_url
+        elif(ranNum == 2):
+            rand_url = peter_audio_url
+        elif(ranNum == 3):
+            rand_url = wizard_audio_url
+        else:
+            rand_url = rogan_audio_url
+    elif model == 'Peter Griffen':
         rand_url = peter_audio_url
-    elif(ranNum == 3):
+    elif model == 'Lex Fridman':
+        rand_url = lex_audio_url
+    elif model == 'Joe Rogan':
+        rand_url = rogan_audio_url
+    else:
         rand_url = wizard_audio_url
     # Make sure you've set your REPLICATE_API_TOKEN in your environment variables
     output = replicate.run(
