@@ -16,10 +16,7 @@ st.title("Dr. Everything at ya service...")
 
 st.markdown('## Whats the deal?')
 
-st.button('🎙️', on_click=record)   
-st.text_input('Enter text...', key='widget', on_change=submit)
-
-st.write(f'Last submission: {st.session_state.something}')
+wav = st.button('🎙️', on_click=record)   
 
 # Replicate Credentials
 with st.sidebar:
