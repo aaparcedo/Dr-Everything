@@ -74,33 +74,7 @@ def clear_chat_history():
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
 st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
 
-# User-provided prompt
-if prompt := st.chat_input(disabled=not replicate_api):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.write(prompt)
-
-
-# # Generate a response from Mixtral using Replicate API
-def generate_mixtral_response(prompt_input):
-    system_prompt = "As an expert doctor LLM,  your task is to provide information and support on medical queries. First, understand the user's concern by  reviewing their history. Offer insights into symptoms, potential conditions, and general health advice, emphasizing when to seek professional care. If a question is outside your expertise, clearly state your focus is on medical information. Your responses should be concise, informative, and empathetic, aimed at guiding  users towards informed health decisions. No need for introductions in each response; prioritize direct, helpful advice. No need to clarify you're not a doctor. This is purely for research purposes."
-    for dict_message in st.session_state.messages:
-        if dict_message["role"] == "user":
-            system_prompt += "User: " + dict_message["content"] + "\n\n"
-        else:
-            system_prompt += "Assistant: " + dict_message["content"] + "\n\n"
-    
-    output = replicate.run('mistralai/mixtral-8x7b-instruct-v0.1',
-                        input = {"prompt": f"{system_prompt} {prompt_input}",}
-                        )    
-    
-    return output
-
-
-# os.getenv('REPLICATE_API_TOKEN')
-
 # Function to transcribe audio using OpenAI Whisper via Replicate API
-# TODO: Properly set API key so this can run once called
 def transcribe_audio(audio_url):
     
     # Run the Whisper model on the provided audio URL
@@ -141,17 +115,54 @@ def generate_audio_from_text(text_input):
     
     return output
 
+# Generate a response from Mixtral using Replicate API
+def generate_mixtral_response(prompt_input):
+    system_prompt = "As an expert doctor LLM,  your task is to provide information and support on medical queries. First, understand the user's concern by  reviewing their history. Offer insights into symptoms, potential conditions, and general health advice, emphasizing when to seek professional care. If a question is outside your expertise, clearly state your focus is on medical information. Your responses should be concise, informative, and empathetic, aimed at guiding  users towards informed health decisions. No need for introductions in each response; prioritize direct, helpful advice. No need to clarify you're not a doctor. This is purely for research purposes."
+    for dict_message in st.session_state.messages:
+        if dict_message["role"] == "user":
+            system_prompt += "User: " + dict_message["content"] + "\n\n"
+        else:
+            system_prompt += "Assistant: " + dict_message["content"] + "\n\n"
+    
+    output = replicate.run('mistralai/mixtral-8x7b-instruct-v0.1',
+                        input = {"prompt": f"{system_prompt} {prompt_input}",}
+                        )    
+        
+    output = ''.join(output)
+    
+    response_audio = generate_audio_from_text(output)
+    # st.markdown(response_audio)
+    return output, response_audio
 
-# Generate a new response if last message is not from assistant
-if st.session_state.messages[-1]["role"] != "assistant":
-    with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            response = generate_mixtral_response(prompt)
-            placeholder = st.empty()
-            full_response = ''
-            for item in response:
-                full_response += item
+
+# Assuming `generate_llama2_response` also saves an audio file and returns its path
+if prompt := st.chat_input(disabled=not replicate_api):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.write(prompt)
+    
+    # Generate a new response if the last message is not from the assistant
+    if st.session_state.messages[-1]["role"] != "assistant":
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                # st.markdown(prompt)
+                response, audio_file_path = generate_mixtral_response(prompt)  # Modify this function to return audio file path
+                
+                # Save the audio file path in session state
+                st.session_state['audio_file_path'] = audio_file_path
+                
+                placeholder = st.empty()
+                full_response = ''
+                for item in response:
+                    full_response += item
+                    placeholder.markdown(full_response)
                 placeholder.markdown(full_response)
-            placeholder.markdown(full_response)
-    message = {"role": "assistant", "content": full_response}
-    st.session_state.messages.append(message)
+                
+        message = {"role": "assistant", "content": full_response}
+        st.session_state.messages.append(message)
+
+# Outside the if condition, add a button that checks for the audio file path in session state
+if 'audio_file_path' in st.session_state and st.button('Play Response'):
+    # Directly pass the URL to st.audio without opening it
+    audio_url = st.session_state['audio_file_path']
+    st.audio(audio_url, format='audio/wav')
