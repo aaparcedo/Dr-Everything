@@ -1,9 +1,12 @@
+import random
 import streamlit as st
 import pandas as pd
 from audio import record
 import replicate
 import os
-import random
+import pydub
+from pydub import AudioSegment
+import base64
 # from dotenv import load_dotenv
 
 # api_key = os.getenv('REPLICATE_API_TOKEN')
@@ -23,7 +26,7 @@ st.markdown(f"""
     <style>
     @keyframes typing {{
         from {{ width: 0; }}
-        to {{ width: 95%; }}
+        to {{ width: 85%; }}
     }}
 
     @keyframes blink-caret {{
@@ -50,7 +53,6 @@ st.markdown(f"""
 
 st.markdown('## What can I help you with?')
 
-wav = st.button('🎙️', on_click=record)   
 
 # # Replicate Credentials
 model = "Random"
@@ -90,7 +92,6 @@ def transcribe_audio(audio_url):
             "audio": audio_url
         }
     )
-    
     # Return the transcription result
     return output
 
@@ -108,6 +109,7 @@ def generate_audio_from_text(text_input):
 
     Parameters:
     - text_input (str): Text to be converted to audio.
+    
     Returns:
     - output: The response from the API, which includes the generated audio information.
     """
@@ -135,7 +137,7 @@ def generate_audio_from_text(text_input):
         "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
         input={
             "text": text_input,
-            "speaker": rand_url
+            "speaker": lex_audio_url
         }
     )
     
@@ -160,13 +162,30 @@ def generate_mixtral_response(prompt_input):
     # st.markdown(response_audio)
     return output, response_audio
 
+wav = st.button('🎙️', on_click=record)  
+
 
 # Assuming `generate_llama2_response` also saves an audio file and returns its path
-if prompt := st.chat_input(disabled=not replicate_api):
+if prompt := st.chat_input(disabled=not replicate_api) or wav:
+
+    if wav:
+        if os.path.exists('output.wav'):
+            with open("output.wav", "rb") as wav_file:
+                binary_data = wav_file.read()
+            base64_data = base64.b64encode(binary_data).decode('utf-8')
+            audio = pydub.AudioSegment.from_wav('output.wav')
+            data_uri = f"data:audio/wav;base64,{base64_data}"
+            json_transcription = transcribe_audio(data_uri)
+            final_transcription = json_transcription["transcription"]
+            st.write(final_transcription)
+            prompt=final_transcription
+        else:
+            st.write('File output.wav does not exist')
+    else:
+        with st.chat_message("user"):
+            st.write(prompt)
+            
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.write(prompt)
-    
     # Generate a new response if the last message is not from the assistant
     if st.session_state.messages[-1]["role"] != "assistant":
         with st.chat_message("assistant"):
