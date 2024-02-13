@@ -53,9 +53,9 @@ st.markdown(f"""
 
 st.markdown('## What can I help you with?')
 
-
-# # Replicate Credentials
-model = "Random"
+if 'model' not in st.session_state:
+    st.session_state["model"] = ''
+# Replicate Credentials
 with st.sidebar:
     st.title('PersonaMD')
     replicate_api = st.text_input('Enter Replicate API token:', type='password')
@@ -66,7 +66,7 @@ with st.sidebar:
     os.environ['REPLICATE_API_TOKEN'] = replicate_api
 
     st.subheader('Models')
-    model = st.sidebar.selectbox('Choose a voice model', ['Peter Giffen', 'Lex Fridman', 'Joe Rogan', 'Wizard', 'Random'], key='selected_model')
+    st.session_state["model"] = st.sidebar.selectbox('Choose a voice model', ['Random', 'Lex Fridman', 'Joe Rogan', 'Wizard', 'Peter Griffen'], key='selected_model')
     
     
 # Store LLM generated responses
@@ -113,31 +113,33 @@ def generate_audio_from_text(text_input):
     Returns:
     - output: The response from the API, which includes the generated audio information.
     """
-    rand_url = None
+    model = st.session_state["model"]
+    url = None
     if model == 'Random':
         ranNum = random.randint(1, 4)
         if(ranNum == 1):
-            rand_url = lex_audio_url
+            url = lex_audio_url
         elif(ranNum == 2):
-            rand_url = peter_audio_url
+            url = peter_audio_url
         elif(ranNum == 3):
-            rand_url = wizard_audio_url
+            url = wizard_audio_url
         else:
-            rand_url = rogan_audio_url
+            url = rogan_audio_url
     elif model == 'Peter Griffen':
-        rand_url = peter_audio_url
+        url = peter_audio_url
     elif model == 'Lex Fridman':
-        rand_url = lex_audio_url
+        url = lex_audio_url
     elif model == 'Joe Rogan':
-        rand_url = rogan_audio_url
+        url = rogan_audio_url
     else:
-        rand_url = wizard_audio_url
+        url = wizard_audio_url
+        
     # Make sure you've set your REPLICATE_API_TOKEN in your environment variables
     output = replicate.run(
         "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
         input={
             "text": text_input,
-            "speaker": lex_audio_url
+            "speaker": url
         }
     )
     
