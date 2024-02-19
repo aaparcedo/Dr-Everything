@@ -8,3 +8,5 @@ DIR
 .wav
 
 node_modules
+
+*json
