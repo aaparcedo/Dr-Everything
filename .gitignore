@@ -4,3 +4,7 @@
 DIR
 
 .env
+
+.wav
+
+node_modules
