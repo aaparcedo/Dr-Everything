@@ -1,11 +1,7 @@
 import random
 import streamlit as st
-import pandas as pd
-from audio import record
 import replicate
 import os
-import pydub
-from pydub import AudioSegment
 import base64
 from st_audiorec import st_audiorec
 
@@ -173,8 +169,6 @@ def generate_llm_response(prompt_input):
     response_audio = generate_audio_from_text(output)
     # st.markdown(response_audio)
     return output, response_audio
-
-# wav = st.button('🎙️', on_click=record)  
 
 
 # Function to handle WAV processing and transcription
